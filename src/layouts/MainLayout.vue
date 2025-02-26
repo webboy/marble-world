@@ -18,7 +18,7 @@
 // MainLayout component using script setup
 </script>
 
-<style scoped>
+<style>
 .q-toolbar {
   min-height: 50px;
 }
@@ -27,5 +27,10 @@
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
+}
+
+.q-page-container {
+  height: calc(100vh - 50px);
+  overflow: hidden;
 }
 </style>
