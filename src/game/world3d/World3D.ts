@@ -2,13 +2,16 @@ import * as THREE from 'three'
 import type { World } from 'cannon-es'
 import cannonDebugger from 'cannon-es-debugger'
 
-export class WorldD3 {
+export class World3D {
   private readonly scene: THREE.Scene
-  public readonly camera: THREE.PerspectiveCamera
+  private readonly camera: THREE.PerspectiveCamera
   private readonly ambientLight: THREE.AmbientLight
+  private readonly directionalLight: THREE.DirectionalLight
   private renderer: THREE.WebGLRenderer
-  private cannonDebug: { update: () => void } // Debugger instance
+  private cannonDebug: { update: () => void, scene: THREE.Scene } | null = null // Reference to cannon debugger
   private readonly physicsWorld: World // Reference to physics world
+  private debugVisible = true; // Track visibility state of the debugger
+
 
   constructor(canvas: HTMLCanvasElement, physicsWorld: World) {
     // Create scene
@@ -22,7 +25,7 @@ export class WorldD3 {
 
     // Set camera
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-    this.camera.position.set(0, 2, 5)
+    this.camera.position.set(0, 20, 5)
     //this.camera.lookAt(0, 0, 0)
 
     // Set renderer
@@ -34,18 +37,24 @@ export class WorldD3 {
     this.ambientLight = new THREE.AmbientLight(0xffffff, 1.5)
     this.scene.add(this.ambientLight)
 
+    // Add directional light
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+    this.directionalLight.position.set(10, 10, 0)
+    this.scene.add(this.directionalLight)
 
+    // Add reference to physics world
     this.physicsWorld = physicsWorld
 
     // Attach debugger to Three.js scene and Cannon world
     this.cannonDebug = cannonDebugger(this.scene, this.physicsWorld, {
       color: 0xff0000, // Red wireframe for physics
       scale: 1 // Scale of wireframe
-    })
+    }) as { update: () => void; scene: THREE.Scene }; // Cast the return value to include "scene"
+
+
   }
 
   init() {
-    this.camera.position.set(0, 6, 20)
     this.renderer.setSize(window.innerWidth, window.innerHeight)
   }
 
@@ -54,18 +63,30 @@ export class WorldD3 {
   }
 
   update() {
-    this.cannonDebug.update() // Refresh physics wireframe
+    if (this.debugVisible) {
+      if (this.cannonDebug)
+        this.cannonDebug.update(); // Refresh physics wireframe if visible
+    }
+
     this.renderer.render(this.scene, this.camera)
   }
 
   updateCamera(position: [ x: number, y: number, z: number ], lookAt: [ x: number, y: number, z: number ]) {
-    this.camera.position.set(...position)
+    const targetPosition = new THREE.Vector3(...position)
+    this.camera.position.lerp(targetPosition, 0.5)
     this.camera.lookAt(...lookAt)
   }
 
-  private onWindowResize() {
+  public onWindowResize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
+
+  // New method to toggle the visibility of the cannon debugger
+  toggleDebug() {
+    console.log('Toggling debug visibility');
+    this.debugVisible = !this.debugVisible; // Toggle visibility state
+  }
+
 }

@@ -45,11 +45,19 @@
         </div>
 
         <div class="row">
-          <div class="col-12">
+          <div class="col-6">
             <q-item dense>
               <q-item-section>
                 <q-item-label caption>Velocity:</q-item-label>
                 <q-item-label>X: {{ velocityX.toFixed(2) }} | Y: {{ velocityY.toFixed(2) }} | Z: {{ velocityZ.toFixed(2) }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </div>
+          <div class="col-6">
+            <q-item dense>
+              <q-item-section>
+                <q-item-label caption>Position:</q-item-label>
+                <q-item-label>X: {{ playerPositionX.toFixed(2) }} | Y: {{ playerPositionY.toFixed(2) }} | Z: {{ playerPositionZ.toFixed(2) }}</q-item-label>
               </q-item-section>
             </q-item>
           </div>
@@ -58,8 +66,9 @@
     </q-card>
 
     <!-- Jump button -->
-    <q-page-sticky position="bottom">
+    <q-page-sticky position="bottom" class="jump-button-container">
       <q-btn round size="lg" color="primary" icon="keyboard_arrow_up" @click="onJump" />
+      <q-btn round size="lg" color="primary" icon="help" @click="toggleGrid" class="q-ml-lg" />
     </q-page-sticky>
   </q-page>
 </template>
@@ -75,9 +84,18 @@ const tiltX = ref(0);
 const tiltY = ref(0);
 const accelX = ref(0);
 const accelY = ref(0);
+// Velocity values
 const velocityX = ref(0);
 const velocityY = ref(0);
 const velocityZ = ref(0);
+
+//Position values
+const playerPositionX = ref(0);
+const playerPositionY = ref(0);
+const playerPositionZ = ref(0);
+
+// Show grid flag
+const showGrid = ref(false);
 
 // Canvas reference
 const canvas = ref<HTMLCanvasElement>()
@@ -92,11 +110,22 @@ const onJump = () => {
   gameEngine?.player?.jump();
 };
 
+// Toggle grid visibility
+const toggleGrid = () => {
+  showGrid.value = !showGrid.value;
+  gameEngine?.world3D.toggleDebug();
+};
+
 const animate = () => {
   // Update debug panel values
-  tiltX.value = gameEngine?.player?.body.velocity.x || 0;
-  tiltY.value = gameEngine?.player?.body.velocity.z || 0;
+  velocityX.value = gameEngine?.player?.body.velocity.x || 0;
+  velocityZ.value = gameEngine?.player?.body.velocity.z || 0;
+  velocityY.value = gameEngine?.player?.body.velocity.y || 0;
 
+  // Update player position
+  playerPositionX.value = gameEngine?.player?.body.position.x || 0
+  playerPositionY.value = gameEngine?.player?.body.position.y || 0
+  playerPositionZ.value = gameEngine?.player?.body.position.z || 0
 
   // Update the game engine
   if (gameEngine) {
@@ -119,6 +148,10 @@ onMounted(() => {
   } else {
     console.error('Canvas element is not available');
   }
+  // Listen for resize events
+  window.addEventListener('resize', () => {
+    gameEngine?.world3D.onWindowResize()
+  });
 });
 
 onBeforeUnmount(() => {
@@ -160,7 +193,7 @@ onBeforeUnmount(() => {
 }
 
 .jump-button-container {
-  position: absolute;
+  position: fixed !important;
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
