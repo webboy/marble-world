@@ -20,7 +20,13 @@ export class World3D {
     const loader = new THREE.CubeTextureLoader()
 
     this.scene.background = loader.setPath("src/game/assets/textures/skybox2/").load([
-      '1.png', '2.png', '3.png', '4.png', '5.png', '6.png'
+
+      '2.png',
+      '1.png',
+      '3.png',
+      '4.png',
+      '5.png',
+      '6.png'
     ])
 
     // Set camera

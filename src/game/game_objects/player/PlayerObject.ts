@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { GameObject } from 'src/game/game_objects/GameObject'
+import { GAME_CONFIG } from 'src/game/configuration/config'
 
 export class PlayerObject extends GameObject {
-  constructor(size: number = 1) {
+  constructor(size: number = GAME_CONFIG.player.radius) {
     // Create a player THREE material with stripes
     // Create canvas for texture
     const canvas = document.createElement('canvas')
@@ -56,8 +57,8 @@ export class PlayerObject extends GameObject {
 
     // Create a player CANNON material
     const playerMaterial = new CANNON.Material({
-      friction: 0.1,
-      restitution: 0.5
+      friction: 10.9,
+      restitution: 0.5,
     });
 
     // Create a player CANNON shape
@@ -65,7 +66,7 @@ export class PlayerObject extends GameObject {
 
     // Create a player CANNON body
     const body = new CANNON.Body({
-      mass: 1,
+      mass: 100,
       material: playerMaterial,
       shape: playerShape
     });
@@ -75,34 +76,105 @@ export class PlayerObject extends GameObject {
   }
 
   jump() {
-    this.body.velocity.y = 15;
+    this.body.velocity.y = GAME_CONFIG.player.jumpForce;
   }
 
-  init() {
-    // Set controls
-    document.onkeydown = (e) => {
-      switch (e.key) {
-        case 'w':
-          this.body.velocity.z -= 1;
-          break;
-        case 's':
-          this.body.velocity.z += 1;
-          break;
-        case 'a':
-          this.body.velocity.x -= 1;
-          break;
-        case 'd':
-          this.body.velocity.x += 1;
-          break;
-        case 'c':
-          this.body.velocity.z = 0;
-          this.body.velocity.x = 0;
-          break
-        case ' ':
-          this.jump();
-          break;
-      }
+  async init() {
+    if (this.isMobileDevice()) {
+      await this.initGyroControls();
+    } else {
+      this.initKeyboardControls();
     }
   }
 
+  private isMobileDevice(): boolean {
+    return /Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+  }
+
+  private initKeyboardControls() {
+    window.addEventListener('keydown', (event) => {
+      switch (event.code) {
+        case 'KeyW':
+        case 'ArrowUp':
+          this.moveForward();
+          break;
+        case 'KeyS':
+        case 'ArrowDown':
+          this.moveBackward();
+          break;
+        case 'KeyA':
+        case 'ArrowLeft':
+          this.moveLeft();
+          break;
+        case 'KeyD':
+        case 'ArrowRight':
+          this.moveRight();
+          break;
+        case 'KeyC':
+          this.stop();
+          break;
+        case 'Space':
+          this.jump()
+          break
+      }
+    });
+  }
+
+  private async initGyroControls() {
+    if (typeof DeviceMotionEvent !== 'undefined' && 'requestPermission' in DeviceMotionEvent) {
+      try {
+        const response = await (DeviceMotionEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission();
+        if (response === 'granted') {
+          window.addEventListener('deviceorientation', this.handleDeviceOrientation.bind(this));
+        }
+      } catch (error) {
+        console.error('Gyro permission request failed:', error);
+      }
+    } else {
+      window.addEventListener('deviceorientation', this.handleDeviceOrientation.bind(this));
+    }
+  }
+
+  private handleDeviceOrientation(event: DeviceOrientationEvent) {
+    if (event.beta !== null && event.gamma !== null) {
+      this.handleGyro(event.beta, event.gamma);
+    }
+  }
+
+  private handleGyro(beta: number, gamma: number) {
+    if (beta > 5) this.moveBackward(Math.abs(beta/90));
+    if (beta < -5) this.moveForward(Math.abs(beta/90));
+    if (gamma > 5) this.moveRight(Math.abs(gamma/90));
+    if (gamma < -5) this.moveLeft(Math.abs(gamma/90));
+  }
+
+  private moveForward(speed: number = 1) {
+    // Move the player forward
+    if (this.body.velocity.z > -GAME_CONFIG.player.maxSpeed) {
+      this.body.velocity.z -= speed
+    }
+  }
+  private moveBackward(speed: number = 1) {
+    // Move the player backward
+    if (this.body.velocity.z < GAME_CONFIG.player.maxSpeed) {
+      this.body.velocity.z += speed
+    }
+  }
+  private moveLeft(speed: number = 1) {
+    // Move the player left
+    if (this.body.velocity.x > -GAME_CONFIG.player.maxSpeed) {
+      this.body.velocity.x -= speed
+    }
+  }
+  private moveRight(speed: number = 1) {
+    // Move the player right
+    if (this.body.velocity.x < GAME_CONFIG.player.maxSpeed) {
+      this.body.velocity.x += speed
+    }
+  }
+  private stop() {
+    // Stop the player
+    this.body.velocity.set(0, 0, 0)
+    this.body.angularVelocity.set(0, 0, 0)
+  }
 }

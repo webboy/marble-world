@@ -4,7 +4,7 @@ import { GameObject } from 'src/game/game_objects/GameObject'
 import { GAME_CONFIG } from 'src/game/configuration/config'
 
 export class GroundObject extends GameObject {
-  constructor(width: number = 100, height: number = 100) {
+  constructor(width: number = GAME_CONFIG.world.width * 10, height: number = GAME_CONFIG.world.height * 10) {
     // Create a texture for the ground
     // Create canvas for tile texture
     const canvas = document.createElement('canvas');
@@ -71,7 +71,7 @@ export class GroundObject extends GameObject {
     });
 
     // Create a ground THREE geometry
-    const geometry = new THREE.PlaneGeometry(GAME_CONFIG.world.width, GAME_CONFIG.world.height);
+    const geometry = new THREE.PlaneGeometry(width, height);
 
     // Create a mesh
     const mesh = new THREE.Mesh(geometry, material);

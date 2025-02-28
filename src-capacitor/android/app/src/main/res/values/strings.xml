@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Marblify</string>
+    <string name="title_activity_main">Marblify</string>
+    <string name="package_name">com.marblify.app</string>
+    <string name="custom_url_scheme">com.marblify.app</string>
+</resources>

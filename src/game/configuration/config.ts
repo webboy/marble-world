@@ -11,5 +11,18 @@ export const GAME_CONFIG = {
     width: 10,
     height: 10,
     depth: 10,
+    thickness: 1,
+  },
+  track_wall: {
+    height: 2,
+    thickness: 1,
+  },
+  player: {
+    // Radius of the player's marble
+    radius: 1,
+    // Base jump force
+    jumpForce: 10,
+    // max speed
+    maxSpeed: 20,
   }
 }
