@@ -79,7 +79,7 @@ export class World3D {
 
   updateCamera(position: [ x: number, y: number, z: number ], lookAt: [ x: number, y: number, z: number ]) {
     const targetPosition = new THREE.Vector3(...position)
-    this.camera.position.lerp(targetPosition, 0.5)
+    this.camera.position.lerp(targetPosition, 0.2)
     this.camera.lookAt(...lookAt)
   }
 

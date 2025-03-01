@@ -24,5 +24,7 @@ export const GAME_CONFIG = {
     jumpForce: 10,
     // max speed
     maxSpeed: 20,
+    // Rotation speed
+    rotationSpeed: 0.05,
   }
 }

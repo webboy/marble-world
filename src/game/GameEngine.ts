@@ -1,3 +1,4 @@
+import type * as CANNON from 'cannon-es'
 import { World3D } from 'src/game/world3d/World3D'
 import { WorldPhysics } from 'src/game/world_physics/WorldPhysics'
 import { PlayerObject } from 'src/game/game_objects/player/PlayerObject'
@@ -6,21 +7,22 @@ import type { TrackBlock } from 'src/game/game_objects/track_blocks/TrackBlock'
 import type { TrackBlockPosition } from 'src/game/types/game';
 import { TrackBlockOrientation } from 'src/game/types/game'
 import { StraightTrackBlock } from 'src/game/game_objects/track_blocks/standard/StraightTrackBlock'
-import { Vec3 } from 'math/Vec3'
 import { TurnLeftTrackBlock } from 'src/game/game_objects/track_blocks/standard/TurnLeftTrackBlock'
 import { TurnRightTrackBlock } from 'src/game/game_objects/track_blocks/standard/TurnRightTrackBlock'
+import type { GameObject } from 'src/game/game_objects/GameObject'
 
 export class GameEngine {
   world3D: World3D
   worldPhysics: WorldPhysics
   player: PlayerObject | null = null
   trackBlocks: Map<TrackBlockPosition, TrackBlock> = new Map()
+  gameObjects: Map<string, GameObject> = new Map()
 
   constructor(canvas: HTMLCanvasElement) {
     this.worldPhysics = new WorldPhysics()
     this.world3D = new World3D(canvas, this.worldPhysics.getWorld())
   }
-  start() {
+  async start() {
     // Initiate the worlds
     this.world3D.init()
     this.worldPhysics.init()
@@ -65,8 +67,8 @@ export class GameEngine {
     }
 
     // Add the player to the world
-    this.player = new PlayerObject()
-    this.player.init()
+    this.player = new PlayerObject(1, this.worldPhysics.getWorld())
+    await this.player.init()
     // Get position of the first track block
     const trackBlock = this.trackBlocks.get(
       this.trackBlocks.keys().next().value
@@ -81,29 +83,39 @@ export class GameEngine {
       console.error('Failed to set player position to the first track block')
       this.player.body.position.set(0, 10, 0)
     }
-    this.world3D.addObject(this.player.mesh)
-    this.worldPhysics.addBody(this.player.body, this.player.id)
+    this.addGameObject(this.player)
+
+    // Listen for player collision
+    this.player.body.addEventListener('collide', (event: { body: CANNON.Body }) => {
+      //console.log('Player collided with', event.body)
+    })
+  }
+
+  // Add game object to the world
+  addGameObject(gameObject: GameObject) {
+    this.gameObjects.set(gameObject.id, gameObject)
+    this.world3D.addObject(gameObject.mesh)
+    this.worldPhysics.addBody(gameObject.body, gameObject.id)
   }
 
   // Add track block to the world
   addTrackBlock(trackBlock: TrackBlock) {
     this.trackBlocks.set({ x: trackBlock.block_x, y: trackBlock.block_y, z: trackBlock.block_z }, trackBlock)
-    this.world3D.addObject(trackBlock.mesh)
-    this.worldPhysics.addBody(trackBlock.body, trackBlock.id)
+    this.addGameObject(trackBlock)
   }
 
   updateCamera() {
     if (!this.player) return
     // Set camera behind the player
     const playerPosition = this.player.body.position
+    //const playerVelocity = this.player.body.velocity
     this.world3D.updateCamera(
-      [playerPosition.x, 20, playerPosition.z + 15],
+      [playerPosition.x, playerPosition.y + 29, playerPosition.z + 3],
       [playerPosition.x, playerPosition.y, playerPosition.z],
     )
   }
 
   public loop() {
-    //console.log('Player position:', this.player?.body.position)
     this.worldPhysics.update()
     this.world3D.update()
     this.player?.update()
