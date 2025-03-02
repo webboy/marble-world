@@ -12,7 +12,7 @@ export class PlayerObject extends GameObject {
   movementController: MovementController
 
   constructor(size: number = GAME_CONFIG.player.radius, world: CANNON.World) {
-    // Create a player THREE material with stripes
+
     // Create canvas for texture
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
@@ -64,7 +64,7 @@ export class PlayerObject extends GameObject {
 
     // Create a player CANNON material
     const playerMaterial = new CANNON.Material({
-      friction: 10.9,
+      friction: 0.9,
       restitution: 0.5,
     })
 
@@ -73,7 +73,7 @@ export class PlayerObject extends GameObject {
 
     // Create a player CANNON body
     const body = new CANNON.Body({
-      mass: 10,
+      mass: 5,
       material: playerMaterial,
       shape: playerShape,
     })
@@ -152,10 +152,10 @@ export class PlayerObject extends GameObject {
   }
 
   private handleGyro(beta: number, gamma: number) {
-    if (beta > 5) this.movementController.moveBackward(Math.abs(beta))
-    if (beta < -5) this.movementController.moveForward(Math.abs(beta))
-    if (gamma > 5) this.movementController.moveRight(Math.abs(gamma))
-    if (gamma < -5) this.movementController.moveLeft(Math.abs(gamma))
+    if (beta > 5) this.movementController.moveBackward(Math.abs(beta/45))
+    if (beta < -5) this.movementController.moveForward(Math.abs(beta/45))
+    if (gamma > 5) this.movementController.moveRight(Math.abs(gamma/90))
+    if (gamma < -5) this.movementController.moveLeft(Math.abs(gamma/90))
   }
 
   jump() {

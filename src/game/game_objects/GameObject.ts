@@ -1,4 +1,4 @@
-import type * as THREE from 'three'
+import * as THREE from 'three'
 import type * as CANNON from 'cannon-es'
 
 export class GameObject {
@@ -10,6 +10,19 @@ export class GameObject {
     this.id = id
     this.mesh = mesh
     this.body = body
+
+    //If mash is a group, set shadows for all children
+    if (mesh instanceof THREE.Group) {
+      mesh.children.forEach((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.castShadow = true
+          child.receiveShadow = true
+        }
+      })
+    } else {
+      mesh.castShadow = true
+      mesh.receiveShadow = true
+    }
   }
 
   update() {

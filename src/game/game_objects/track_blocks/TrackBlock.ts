@@ -109,7 +109,8 @@ export class TrackBlock extends GameObject {
 
     // Create materials array with texture on the appropriate face
     const materials = this.createBaseMaterials()
-    materials[4] = new THREE.MeshBasicMaterial({
+    materials[4] = new THREE.MeshStandardMaterial({
+      color: 'gray',
       map: trackTexture,
       //alphaMap: alphaMap,
       //transparent: true,
@@ -147,9 +148,9 @@ export class TrackBlock extends GameObject {
   /**
    * Creates basic materials for track components
    */
-  protected static createBaseMaterials(): THREE.MeshBasicMaterial[] {
+  protected static createBaseMaterials(): THREE.MeshStandardMaterial[] {
     return Array(6).fill(null).map(() =>
-      new THREE.MeshBasicMaterial({ color: this.DEFAULT_COLOR })
+      new THREE.MeshStandardMaterial({ color: this.DEFAULT_COLOR })
     )
   }
 
@@ -158,7 +159,7 @@ export class TrackBlock extends GameObject {
    */
   protected static createWall(position: string) {
     // create material
-    const material = new THREE.MeshBasicMaterial({ color: this.DEFAULT_COLOR })
+    const material = new THREE.MeshStandardMaterial({ color: this.DEFAULT_COLOR })
 
     // create geometry
     const geometry = new THREE.BoxGeometry(

@@ -135,7 +135,7 @@ const animate = () => {
   requestAnimationFrame(animate);
 };
 
-onMounted(() => {
+onMounted(async () => {
   // Game initialization will go here
   console.log('Game page mounted');
   // Instantiate the game engine
@@ -143,7 +143,7 @@ onMounted(() => {
     // Only initialize the GameEngine after the canvas is available
     gameEngine = new GameEngine(canvas.value);
     console.log('Game engine initialized');
-    gameEngine.start()
+    await gameEngine.start()
     animate()
   } else {
     console.error('Canvas element is not available');

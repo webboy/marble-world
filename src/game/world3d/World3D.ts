@@ -32,36 +32,47 @@ export class World3D {
     // Set camera
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     this.camera.position.set(0, 20, 5)
-    //this.camera.lookAt(0, 0, 0)
 
     // Set renderer
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
     this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.setSize(window.innerWidth, window.innerHeight)
 
+    //Turn on shadows
+    this.renderer.shadowMap.enabled = true
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+
+
     // Add ambient light
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 1.5)
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
     this.scene.add(this.ambientLight)
 
     // Add directional light
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 1)
-    this.directionalLight.position.set(10, 10, 0)
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 5)
+    this.directionalLight.position.set(100, 100, 50)
+    this.directionalLight.castShadow = true
     this.scene.add(this.directionalLight)
+
+    //Set up shadow properties for the light
+    this.directionalLight.shadow.mapSize.width = 8048; // default
+    this.directionalLight.shadow.mapSize.height = 8048; // default
+    this.directionalLight.shadow.camera.near = 0.5; // default
+    this.directionalLight.shadow.camera.far = 500; // default
+    this.directionalLight.shadow.camera.left = -500;
+    this.directionalLight.shadow.camera.right = 500;
+    this.directionalLight.shadow.camera.top = 500;
+    this.directionalLight.shadow.camera.bottom = -500;
 
     // Add reference to physics world
     this.physicsWorld = physicsWorld
+  }
 
+  init() {
     // Attach debugger to Three.js scene and Cannon world
     this.cannonDebug = cannonDebugger(this.scene, this.physicsWorld, {
       color: 0xff0000, // Red wireframe for physics
       scale: 1 // Scale of wireframe
     }) as { update: () => void; scene: THREE.Scene }; // Cast the return value to include "scene"
-
-
-  }
-
-  init() {
-    this.renderer.setSize(window.innerWidth, window.innerHeight)
   }
 
   addObject(object: THREE.Object3D) {

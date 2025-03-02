@@ -10,13 +10,20 @@ import { StraightTrackBlock } from 'src/game/game_objects/track_blocks/standard/
 import { TurnLeftTrackBlock } from 'src/game/game_objects/track_blocks/standard/TurnLeftTrackBlock'
 import { TurnRightTrackBlock } from 'src/game/game_objects/track_blocks/standard/TurnRightTrackBlock'
 import type { GameObject } from 'src/game/game_objects/GameObject'
+import { GoalObject } from 'src/game/game_objects/goal/GoalObject'
+import { GAME_CONFIG } from 'src/game/configuration/config'
 
 export class GameEngine {
   world3D: World3D
   worldPhysics: WorldPhysics
   player: PlayerObject | null = null
+  playerID: number | null = null
+  goal: GoalObject | null = null
+  goalID: number | null = null
   trackBlocks: Map<TrackBlockPosition, TrackBlock> = new Map()
   gameObjects: Map<string, GameObject> = new Map()
+  timer: number = 0
+  finalTime: number = 0
 
   constructor(canvas: HTMLCanvasElement) {
     this.worldPhysics = new WorldPhysics()
@@ -32,64 +39,93 @@ export class GameEngine {
     this.world3D.addObject(ground.mesh)
     this.worldPhysics.addBody(ground.body, ground.id)
 
-    // Add track blocks to the world
-    for (let i = 0; i < 3; i++) {
-      // Create a straight track block with random orientation
-      const trackBlock = new StraightTrackBlock(i, 0, 1, TrackBlockOrientation.EAST)
-      this.addTrackBlock(trackBlock)
-    }
-    let cornerBlock
-    cornerBlock = new TurnLeftTrackBlock(3, 0, 1, TrackBlockOrientation.EAST)
-    this.addTrackBlock(cornerBlock)
-
-    for (let i = 1; i < 5; i++) {
-      // Create a straight track block with random orientation
-      const trackBlock = new StraightTrackBlock(3, -i, 1, TrackBlockOrientation.NORTH)
-      this.addTrackBlock(trackBlock)
-    }
-
-    cornerBlock = new TurnRightTrackBlock(3, -5, 1, TrackBlockOrientation.NORTH)
-    this.addTrackBlock(cornerBlock)
-
-    for (let i = 4; i < 6; i++) {
-      // Create a straight track block with random orientation
-      const trackBlock = new StraightTrackBlock(i, -5, 1, TrackBlockOrientation.EAST)
-      this.addTrackBlock(trackBlock)
-    }
-
-    cornerBlock = new TurnRightTrackBlock(6, -5, 1, TrackBlockOrientation.EAST)
-    this.addTrackBlock(cornerBlock)
-
-    for (let i = -4; i < 1; i++) {
-      // Create a straight track block with random orientation
-      const trackBlock = new StraightTrackBlock(6, i, 1, TrackBlockOrientation.SOUTH)
-      this.addTrackBlock(trackBlock)
-    }
+    // Draw the track
+    this.drawTracks()
 
     // Add the player to the world
-    this.player = new PlayerObject(1, this.worldPhysics.getWorld())
+    this.player = new PlayerObject(GAME_CONFIG.player.radius, this.worldPhysics.getWorld())
     await this.player.init()
+    this.addGameObject(this.player)
+    this.playerID = this.player.body.id
+
     // Get position of the first track block
-    const trackBlock = this.trackBlocks.get(
+    const firstTrackBlock = this.trackBlocks.get(
       this.trackBlocks.keys().next().value
     )
 
     // Set player position to the first track block
-    if (trackBlock) {
-      //console.log('Track block position:', trackBlock.body.position)
-      const trackBlockPosition = trackBlock.body.position
+    if (firstTrackBlock) {
+      const trackBlockPosition = firstTrackBlock.body.position
       this.player.body.position.set(trackBlockPosition.x, trackBlockPosition.y + 10, trackBlockPosition.z)
     } else {
       console.error('Failed to set player position to the first track block')
       this.player.body.position.set(0, 10, 0)
     }
-    this.addGameObject(this.player)
+
+    // Add Goal object to the world
+    this.goal = new GoalObject()
+    this.addGameObject(this.goal)
+    this.goalID = this.goal.body.id
+
+    // Get the last track block
+    const keys = Array.from(this.trackBlocks.keys());
+    const lastKey = keys.length > 0 ? keys[keys.length - 15] : undefined;
+    const lastTrackBlock = lastKey !== undefined ? this.trackBlocks.get(lastKey) : undefined;
+    if (lastTrackBlock) {
+      const trackBlockPosition = lastTrackBlock.body.position
+      this.goal.body.position.set(trackBlockPosition.x, trackBlockPosition.y + 3, trackBlockPosition.z)
+    } else {
+      console.error('Failed to set goal position to the last track block')
+      this.goal.body.position.set(0, 10, 0)
+    }
 
     // Listen for player collision
     this.player.body.addEventListener('collide', (event: { body: CANNON.Body }) => {
-      //console.log('Player collided with', event.body)
+      // Check if the player collided with the goal
+      if (event.body.id === this.goalID && this.finalTime === 0) {
+        console.log('Player reached the goal')
+        this.finalTime = this.timer
+        console.log('Final time:', this.finalTime)
+      }
     })
   }
+
+  drawTracks() {
+    // Add track blocks to the world
+    for (let i = 0; i < 3; i++) {
+      // Create a straight track block with random orientation
+      const trackBlock = new StraightTrackBlock(i, 0, 0, TrackBlockOrientation.EAST)
+      this.addTrackBlock(trackBlock)
+    }
+    let cornerBlock
+    cornerBlock = new TurnLeftTrackBlock(3, 0, 0, TrackBlockOrientation.EAST)
+    this.addTrackBlock(cornerBlock)
+
+    for (let i = 1; i < 5; i++) {
+      // Create a straight track block with random orientation
+      const trackBlock = new StraightTrackBlock(3, -i, 0, TrackBlockOrientation.NORTH)
+      this.addTrackBlock(trackBlock)
+    }
+
+    cornerBlock = new TurnRightTrackBlock(3, -5, 0, TrackBlockOrientation.NORTH)
+    this.addTrackBlock(cornerBlock)
+
+    for (let i = 4; i < 6; i++) {
+      // Create a straight track block with random orientation
+      const trackBlock = new StraightTrackBlock(i, -5, 0, TrackBlockOrientation.EAST)
+      this.addTrackBlock(trackBlock)
+    }
+
+    cornerBlock = new TurnRightTrackBlock(6, -5, 0, TrackBlockOrientation.EAST)
+    this.addTrackBlock(cornerBlock)
+
+    for (let i = -4; i < 1; i++) {
+      // Create a straight track block with random orientation
+      const trackBlock = new StraightTrackBlock(6, i, 0, TrackBlockOrientation.SOUTH)
+      this.addTrackBlock(trackBlock)
+    }
+  }
+
 
   // Add game object to the world
   addGameObject(gameObject: GameObject) {
@@ -119,6 +155,13 @@ export class GameEngine {
     this.worldPhysics.update()
     this.world3D.update()
     this.player?.update()
+    this.goal?.update()
     this.updateCamera()
+
+    // Update timer
+    if (this.finalTime === 0)
+    {
+      this.timer += 1
+    }
   }
 }
