@@ -15,7 +15,7 @@ export const GAME_CONFIG = {
   },
   track_wall: {
     height: 2,
-    thickness: 1,
+    thickness: 0.5,
   },
   player: {
     // Radius of the player's marble

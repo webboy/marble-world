@@ -12,6 +12,7 @@ export class TrackBlock extends GameObject {
   block_z: number
   type: string
   orientation: TrackBlockOrientation
+  timeValue: number = 100;
 
   // Common colors
   protected static readonly DEFAULT_COLOR = 0x555555
@@ -159,6 +160,7 @@ export class TrackBlock extends GameObject {
    * Creates a wall for the track block
    */
   protected static createWall(position: string) {
+
     // create material
     const material = new THREE.MeshStandardMaterial({ color: this.DEFAULT_COLOR })
 

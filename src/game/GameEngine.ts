@@ -12,6 +12,8 @@ import { TurnRightTrackBlock } from 'src/game/game_objects/track_blocks/standard
 import type { GameObject } from 'src/game/game_objects/GameObject'
 import { GoalObject } from 'src/game/game_objects/goal/GoalObject'
 import { GAME_CONFIG } from 'src/game/configuration/config'
+import { StartTrackBlock } from 'src/game/game_objects/track_blocks/standard/StartTrackBlock'
+import { GoalTrackBlock } from 'src/game/game_objects/track_blocks/standard/GoalTrackBlock'
 
 export class GameEngine {
   world3D: World3D
@@ -29,11 +31,16 @@ export class GameEngine {
   private maxTime: number = 0
   private score: number = 0
   private trackZLevel: number = 1
+  // Initial player position for reset
+  private initialPlayerPosition = { x: 0, y: 10, z: 0 }
+  // Initial goal position for reset
+  private initialGoalPosition = { x: 0, y: 10, z: 0 }
 
   constructor(canvas: HTMLCanvasElement) {
     this.worldPhysics = new WorldPhysics()
     this.world3D = new World3D(canvas, this.worldPhysics.getWorld())
   }
+
   init() {
     // Initiate the worlds
     this.world3D.init()
@@ -60,8 +67,8 @@ export class GameEngine {
 
     // Set player position to the first track block
     if (firstTrackBlock) {
-      const trackBlockPosition = firstTrackBlock.body.position
-      this.player.body.position.set(trackBlockPosition.x, trackBlockPosition.y + 10, trackBlockPosition.z)
+      this.initialPlayerPosition = firstTrackBlock.body.position
+      this.player.body.position.set(this.initialPlayerPosition.x, this.initialPlayerPosition.y + 2, this.initialPlayerPosition.z)
     } else {
       console.error('Failed to set player position to the first track block')
       this.player.body.position.set(0, 10, 0)
@@ -77,8 +84,8 @@ export class GameEngine {
     const lastKey = keys.length > 0 ? keys[keys.length - 1] : undefined;
     const lastTrackBlock = lastKey !== undefined ? this.trackBlocks.get(lastKey) : undefined;
     if (lastTrackBlock) {
-      const trackBlockPosition = lastTrackBlock.body.position
-      this.goal.body.position.set(trackBlockPosition.x, trackBlockPosition.y + 1, trackBlockPosition.z)
+      this.initialGoalPosition = lastTrackBlock.body.position
+      this.goal.body.position.set(this.initialGoalPosition.x, this.initialGoalPosition.y + 3, this.initialGoalPosition.z)
     } else {
       console.error('Failed to set goal position to the last track block')
       this.goal.body.position.set(0, 10, 0)
@@ -92,7 +99,14 @@ export class GameEngine {
     this.gameStarted = true
 
     // Listen for player collision
-    this.player.body.addEventListener('collide', (event: { body: CANNON.Body }) => {
+    this.setupCollisionListeners()
+  }
+
+  setupCollisionListeners() {
+    if (!this.player) return
+
+    // Define collision handler
+    const collisionHandler = (event: { body: CANNON.Body }) => {
       // Check if the player collided with the goal
       if (event.body.id === this.goalID && this.isStarted()) {
         this.finalTime = this.timer
@@ -110,11 +124,9 @@ export class GameEngine {
             }
           })
         document.dispatchEvent(event)
-        // Remove collide listener
-        this.player?.body.removeEventListener('collide', () => {})
       }
       // Check if the player collided with the ground
-      if (event.body.id === this.groundID) {
+      if (event.body.id === this.groundID && this.isStarted()) {
         this.finalTime = this.timer
         this.gameStarted = false
         // Update score
@@ -126,17 +138,59 @@ export class GameEngine {
             detail: {
               status: 'failure',
               finalTime: this.finalTime,
-              score: this.score,
+              score: 0,
             }
           })
         document.dispatchEvent(event)
-        // Remove collide listener
-        this.player?.body.removeEventListener('collide', () => {})
       }
-    })
+    }
+
+    // Add collision listener
+    this.player.body.addEventListener('collide', collisionHandler)
+  }
+
+  // Restart the game
+  restart() {
+    console.log('Restarting game...')
+
+    // Reset timer and score
+    this.timer = 0
+    this.finalTime = 0
+    this.score = 0
+    this.gameStarted = false
+
+    // Reset player position and velocity
+    if (this.player) {
+      this.player.body.position.set(
+        this.initialPlayerPosition.x,
+        this.initialPlayerPosition.y + 2,
+        this.initialPlayerPosition.z
+      )
+      this.player.body.velocity.set(0, 0, 0)
+      this.player.body.angularVelocity.set(0, 0, 0)
+    }
+
+    // Reset goal position
+    if (this.goal) {
+      this.goal.body.velocity.set(0, 0, 0)
+      this.goal.body.angularVelocity.set(0, 0, 0)
+      this.goal.body.position.set(
+        this.initialGoalPosition.x,
+        this.initialGoalPosition.y + 3,
+        this.initialGoalPosition.z
+      )
+    }
+
+    console.log('Game reset complete')
   }
 
   drawTracks() {
+    // Add start track block
+    this.addTrackBlock(new StartTrackBlock(-1, 1, this.trackZLevel, TrackBlockOrientation.NORTH))
+
+    // Add first corner
+    this.addTrackBlock(new TurnRightTrackBlock(-1, 0, this.trackZLevel, TrackBlockOrientation.NORTH))
+
     // Add track blocks to the world
     for (let i = 0; i < 3; i++) {
       // Create a straight track block with random orientation
@@ -165,16 +219,15 @@ export class GameEngine {
     cornerBlock = new TurnRightTrackBlock(6, -5, this.trackZLevel, TrackBlockOrientation.EAST)
     this.addTrackBlock(cornerBlock)
 
-    for (let i = -4; i < 1; i++) {
+    for (let i = -4; i < -1; i++) {
       // Create a straight track block with random orientation
       const trackBlock = new StraightTrackBlock(6, i, this.trackZLevel, TrackBlockOrientation.SOUTH)
       this.addTrackBlock(trackBlock)
     }
 
-    // Update maximum time for the game according to number of track blocks
-    this.maxTime = this.trackBlocks.size * 100
+    // Add goal track block
+    this.addTrackBlock(new GoalTrackBlock(6, 1, this.trackZLevel, TrackBlockOrientation.SOUTH))
   }
-
 
   // Add game object to the world
   addGameObject(gameObject: GameObject) {
@@ -185,8 +238,14 @@ export class GameEngine {
 
   // Add track block to the world
   addTrackBlock(trackBlock: TrackBlock) {
+    // Add track block to the world
     this.trackBlocks.set({ x: trackBlock.block_x, y: trackBlock.block_y, z: trackBlock.block_z }, trackBlock)
+
+    // Add game object to the world
     this.addGameObject(trackBlock)
+
+    // Add time value to the max time
+    this.maxTime += trackBlock.timeValue
   }
 
   updateCamera() {

@@ -69,10 +69,10 @@ export class World3D {
 
   init() {
     // Attach debugger to Three.js scene and Cannon world
-    this.cannonDebug = cannonDebugger(this.scene, this.physicsWorld, {
-      color: 0xff0000, // Red wireframe for physics
-      scale: 1 // Scale of wireframe
-    }) as { update: () => void; scene: THREE.Scene }; // Cast the return value to include "scene"
+    // this.cannonDebug = cannonDebugger(this.scene, this.physicsWorld, {
+    //   color: 0xff0000, // Red wireframe for physics
+    //   scale: 1 // Scale of wireframe
+    // }) as { update: () => void; scene: THREE.Scene }; // Cast the return value to include "scene"
   }
 
   addObject(object: THREE.Object3D) {

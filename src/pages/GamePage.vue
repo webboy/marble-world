@@ -77,6 +77,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
     <!-- Game Over dialog -->
     <q-dialog
       v-model="showGameOver"
@@ -84,29 +85,36 @@
       transition-show="scale"
       transition-hide="scale"
     >
-      <q-card class="instructions-dialog">
+      <q-card class="game-over-dialog">
         <q-card-section class="text-center q-pt-lg">
-          <h4 class="text-weight-bold q-mt-none q-mb-md">Game Instructions</h4>
+          <h4 class="text-weight-bold q-mt-none q-mb-md">{{ gameOverTitle }}</h4>
         </q-card-section>
 
         <q-card-section class="q-px-lg">
-          <p>Welcome to the game! Here are the instructions on how to play:</p>
-          <ul>
-            <li>Use the jump button to navigate obstacles</li>
-            <li>Collect power-ups along the way</li>
-            <li>Avoid falling off the platform</li>
-            <li>Reach the end before time runs out</li>
-          </ul>
-          <p class="text-weight-medium">Good luck!</p>
+          <div class="text-center q-mb-md">
+            <p v-if="gameStatus === 'success'" class="text-positive text-weight-medium">Congratulations! You completed the track!</p>
+            <p v-else class="text-negative text-weight-medium">You fell off the track!</p>
+          </div>
+
+          <div class="row justify-center q-col-gutter-md q-mb-md">
+            <div class="col-auto text-center">
+              <p class="text-weight-bold q-mb-xs">Final Time</p>
+              <div class="score-value">{{ finalTime }}s</div>
+            </div>
+            <div class="col-auto text-center">
+              <p class="text-weight-bold q-mb-xs">Score</p>
+              <div class="score-value">{{ finalScore }}</div>
+            </div>
+          </div>
         </q-card-section>
 
         <q-card-actions align="center" class="q-pb-md">
           <q-btn
             color="primary"
-            label="START"
-            class="start-button q-py-sm q-px-xl"
+            label="PLAY AGAIN"
+            class="restart-button q-py-sm q-px-xl"
             size="lg"
-            @click="startGame"
+            @click="restartGame"
           />
         </q-card-actions>
       </q-card>
@@ -123,6 +131,12 @@ import { GameEngine } from 'src/game/GameEngine'
 // Dialog control
 const showInstructions = ref(true);
 const showGameOver = ref(false);
+
+// Game over state
+const gameStatus = ref<'success' | 'failure'>('failure');
+const gameOverTitle = ref('Game Over');
+const finalTime = ref('0.00');
+const finalScore = ref(0);
 
 // Debug panel values
 const timer = ref(0)
@@ -169,6 +183,25 @@ const startGame = async () => {
   }
 };
 
+// Restart game function
+const restartGame = async () => {
+  showGameOver.value = false;
+
+  if (gameEngine) {
+    // Reset the game engine
+    gameEngine.restart();
+
+    // Restart the animation loop if it was stopped
+    if (animationFrameId === null) {
+      animate();
+    }
+
+    // Start the game again
+    await gameEngine.start();
+    console.log('Game restarted');
+  }
+};
+
 const showInstructionsDialog = () => {
   showInstructions.value = true;
 };
@@ -209,14 +242,31 @@ onMounted(() => {
     // Listen for game-finished event
     document.addEventListener('game-finished', (event: Event) => {
       console.log('Game finished:', event);
+
+      // Type assertion to access custom event properties
+      const customEvent = event as CustomEvent<{
+        status: 'success' | 'failure';
+        finalTime: number;
+        score: number;
+      }>;
+
+      // Set game over details
+      if (customEvent.detail) {
+        gameStatus.value = customEvent.detail.status;
+        gameOverTitle.value = customEvent.detail.status === 'success' ? 'Level Complete!' : 'Game Over';
+        finalTime.value = (customEvent.detail.finalTime / 60).toFixed(2);
+        finalScore.value = customEvent.detail.score;
+      }
+
       // Stop the animation loop
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
       }
-      // Show the instructions dialog again
-      showInstructionsDialog();
-    })
+
+      // Show the game over dialog
+      showGameOver.value = true;
+    });
   } else {
     console.error('Canvas element is not available');
   }
@@ -244,6 +294,11 @@ onBeforeUnmount(() => {
   // Remove event listeners
   window.removeEventListener('resize', () => {
     gameEngine?.world3D.onWindowResize()
+  });
+
+  // Proper event listener cleanup
+  document.removeEventListener('game-finished', () => {
+    // Empty function to match the type signature
   });
 
   console.log('Game page unmounting');
@@ -290,13 +345,15 @@ onBeforeUnmount(() => {
   z-index: 3;
 }
 
-.instructions-dialog {
+.instructions-dialog,
+.game-over-dialog {
   width: 90%;
   max-width: 500px;
   border-radius: 8px;
 }
 
-.start-button {
+.start-button,
+.restart-button {
   font-size: 1.2rem;
   letter-spacing: 1px;
   font-weight: bold;
@@ -304,7 +361,16 @@ onBeforeUnmount(() => {
   transition: transform 0.2s;
 }
 
-.start-button:hover {
+.start-button:hover,
+.restart-button:hover {
   transform: scale(1.05);
+}
+
+.score-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 8px 16px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
 }
 </style>
