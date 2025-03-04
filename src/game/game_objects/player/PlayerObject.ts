@@ -4,8 +4,6 @@ import { GameObject } from 'src/game/game_objects/GameObject'
 import { GAME_CONFIG } from 'src/game/configuration/config'
 import type { MovementController } from 'src/game/types/game'
 import { VelocityController } from 'src/game/game_objects/player/controllers/VelocityController'
-import { ForceController } from 'src/game/game_objects/player/controllers/ForceController'
-import { TorqueController } from 'src/game/game_objects/player/controllers/TorqueController'
 
 export class PlayerObject extends GameObject {
   world: CANNON.World
@@ -87,7 +85,7 @@ export class PlayerObject extends GameObject {
     this.movementController = new VelocityController(this)
   }
 
-  async init() {
+  async start() {
     if (this.isMobileDevice()) {
       await this.initGyroControls()
     } else {

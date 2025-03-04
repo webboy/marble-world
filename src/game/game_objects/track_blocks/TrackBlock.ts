@@ -4,6 +4,7 @@ import { GameObject } from 'src/game/game_objects/GameObject'
 import { GAME_CONFIG } from 'src/game/configuration/config'
 import { TrackBlockOrientation } from 'src/game/types/game'
 import { PhysicsBodyUtility } from 'src/game/utilities/PhysicsBodyUtility'
+import { TextureMaterial } from 'src/game/game_objects/materials/TextureMaterial'
 
 export class TrackBlock extends GameObject {
   block_x: number

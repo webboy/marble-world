@@ -6,7 +6,7 @@ import { GAME_CONFIG } from 'src/game/configuration/config'
 export class GoalObject extends GameObject{
 
   // Define the constructor. Coordinates are related to track block position
-  constructor(radius: number = GAME_CONFIG.player.radius *3.5) {
+  constructor(radius: number = GAME_CONFIG.player.radius *1.5) {
     // Define the mesh geometry
     const geometry = new THREE.SphereGeometry(radius, 32, 32)
 

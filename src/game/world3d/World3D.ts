@@ -31,7 +31,7 @@ export class World3D {
 
     // Set camera
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-    this.camera.position.set(0, 20, 5)
+    this.camera.position.set(0, 10, 5)
 
     // Set renderer
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
@@ -44,11 +44,11 @@ export class World3D {
 
 
     // Add ambient light
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 1)
     this.scene.add(this.ambientLight)
 
     // Add directional light
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 5)
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 1.5)
     this.directionalLight.position.set(100, 100, 50)
     this.directionalLight.castShadow = true
     this.scene.add(this.directionalLight)
