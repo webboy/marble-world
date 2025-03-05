@@ -19,7 +19,8 @@ export class ForceController implements MovementController {
 
   moveBackward(force: number = 1): void {
     // Apply force in the forward direction
-    this.body.applyForce(new CANNON.Vec3(0, 0, force * this.body.mass), this.body.position);
+    const forcePoint = this.body.position
+    this.body.applyForce(new CANNON.Vec3(0, 0, force * this.body.mass), forcePoint);
   }
 
   moveForward(force: number = 1): void {

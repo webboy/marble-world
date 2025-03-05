@@ -4,6 +4,8 @@ import { GameObject } from 'src/game/game_objects/GameObject'
 import { GAME_CONFIG } from 'src/game/configuration/config'
 import type { MovementController } from 'src/game/types/game'
 import { VelocityController } from 'src/game/game_objects/player/controllers/VelocityController'
+import { ForceController } from 'src/game/game_objects/player/controllers/ForceController'
+import { TorqueController } from 'src/game/game_objects/player/controllers/TorqueController'
 
 export class PlayerObject extends GameObject {
   world: CANNON.World
@@ -102,19 +104,19 @@ export class PlayerObject extends GameObject {
       switch (event.code) {
         case 'KeyW':
         case 'ArrowUp':
-          this.movementController.moveForward()
+          this.movementController.moveForward(1)
           break
         case 'KeyS':
         case 'ArrowDown':
-          this.movementController.moveBackward()
+          this.movementController.moveBackward(1)
           break
         case 'KeyA':
         case 'ArrowLeft':
-          this.movementController.moveLeft()
+          this.movementController.moveLeft(1)
           break
         case 'KeyD':
         case 'ArrowRight':
-          this.movementController.moveRight()
+          this.movementController.moveRight(1)
           break
         case 'KeyC':
           this.movementController.stop()
@@ -150,8 +152,8 @@ export class PlayerObject extends GameObject {
   }
 
   private handleGyro(beta: number, gamma: number) {
-    if (beta > 5) this.movementController.moveBackward(Math.abs(beta/45))
-    if (beta < -5) this.movementController.moveForward(Math.abs(beta/45))
+    if (beta > 5) this.movementController.moveBackward(Math.abs(beta/90))
+    if (beta < -5) this.movementController.moveForward(Math.abs(beta/90))
     if (gamma > 5) this.movementController.moveRight(Math.abs(gamma/90))
     if (gamma < -5) this.movementController.moveLeft(Math.abs(gamma/90))
   }
