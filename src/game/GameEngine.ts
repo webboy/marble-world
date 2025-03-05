@@ -1,6 +1,6 @@
 import type * as CANNON from 'cannon-es'
-import { World3D } from 'src/game/world3d/World3D'
-import { WorldPhysics } from 'src/game/world_physics/WorldPhysics'
+import { World3D } from 'src/game/3d/World3D'
+import { WorldPhysics } from 'src/game/physics/WorldPhysics'
 import { PlayerObject } from 'src/game/game_objects/player/PlayerObject'
 import { GroundObject } from 'src/game/game_objects/ground/GroundObject'
 import type { TrackBlock } from 'src/game/game_objects/track_blocks/TrackBlock'
