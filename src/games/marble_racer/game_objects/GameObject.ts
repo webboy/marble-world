@@ -3,8 +3,8 @@ import type * as CANNON from 'cannon-es'
 
 export class GameObject {
   id: string
-  mesh: THREE.Mesh | THREE.Group
-  body: CANNON.Body
+  protected mesh: THREE.Mesh | THREE.Group
+  protected body: CANNON.Body
 
   constructor(id: string, mesh: THREE.Mesh | THREE.Group, body: CANNON.Body) {
     this.id = id

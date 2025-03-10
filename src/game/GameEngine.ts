@@ -49,7 +49,7 @@ export class GameEngine {
     // Add the ground to the world
     const ground = new GroundObject()
     this.world3D.addObject(ground.mesh)
-    this.worldPhysics.addBody(ground.body, ground.id)
+    this.worldPhysics.addBody(ground.body)
     this.groundID = ground.body.id
 
     // Draw the track
@@ -233,7 +233,7 @@ export class GameEngine {
   addGameObject(gameObject: GameObject) {
     this.gameObjects.set(gameObject.id, gameObject)
     this.world3D.addObject(gameObject.mesh)
-    this.worldPhysics.addBody(gameObject.body, gameObject.id)
+    this.worldPhysics.addBody(gameObject.body)
   }
 
   // Add track block to the world

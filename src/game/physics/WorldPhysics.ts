@@ -2,15 +2,13 @@ import * as CANNON from 'cannon-es';
 
 export class WorldPhysics {
   private readonly world: CANNON.World
-  private bodies: Map<string, CANNON.Body> = new Map()
 
   constructor() {
     this.world = new CANNON.World()
   }
 
-  addBody(body: CANNON.Body, name: string){
+  addBody(body: CANNON.Body){
     this.world.addBody(body)
-    this.bodies.set(name, body)
   }
 
   update() {

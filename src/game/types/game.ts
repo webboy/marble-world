@@ -13,6 +13,14 @@ export enum TrackBlockOrientation {
   WEST = 'west'
 }
 
+export enum GameWorldType {
+  GRASS = 'grass',
+  DESERT = 'desert',
+  SNOW = 'snow',
+  SPACE = 'space',
+  LAVA = 'lava'
+}
+
 export interface MovementController {
     player: PlayerObject
     moveForward(speed?: number): void

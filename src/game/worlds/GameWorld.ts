@@ -1,18 +1,19 @@
 import * as CANNON from 'cannon-es';
+import type * as THREE from 'three';
+import { GameWorldType } from 'src/game/types/game'
 
 export class GameWorld {
-  gravity: CANNON.Vec3 = new CANNON.Vec3(0, 0, 0)
-  trackFriction: number = 0.5
+  protected type: GameWorldType = GameWorldType.GRASS
+  protected gravity: CANNON.Vec3 = new CANNON.Vec3(0, 0, 0)
+  protected trackFriction: number = 0.5
+  protected ambientLights: Map<string,THREE.AmbientLight> = new Map()
+  protected directionalLights: Map<string,THREE.DirectionalLight> = new Map()
 
-
-
-  // Set gravity for the world
-  setGravity(x: number, y: number, z: number) {
-    this.gravity.set(x, y, z)
+  getGravity() {
+    return this.gravity
   }
 
-  // Set track friction for the world
-  setTrackFriction(friction: number) {
-    this.trackFriction = friction
+  getTrackFriction() {
+    return this.trackFriction
   }
 }
