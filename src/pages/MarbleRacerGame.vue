@@ -1,7 +1,40 @@
 <template>
-  <q-page class="game-page q-pa-none">
+  <q-page class="q-pa-none">
     <!-- Canvas for game rendering -->
-    <canvas ref="canvas" class="game-canvas"></canvas>
+    <canvas ref="canvas"></canvas>
+
+    <!-- Instructions dialog -->
+    <q-dialog
+      v-model="showInstructions"
+      persistent
+      transition-show="scale"
+      transition-hide="scale"
+    >
+      <q-card class="instructions-dialog">
+        <q-card-section class="text-center q-pt-lg">
+          <h4 class="text-weight-bold q-mt-none q-mb-md">Grass world!!!</h4>
+        </q-card-section>
+
+        <q-card-section class="q-px-lg">
+          <p>Welcome to the grass world:</p>
+          <ul>
+            <li>Collect power-ups along the way</li>
+            <li>Reach the end before time runs out</li>
+          </ul>
+          <p class="text-weight-medium">Good luck!</p>
+        </q-card-section>
+
+        <q-card-actions align="center" class="q-pb-md">
+          <q-btn
+            color="primary"
+            label="START"
+            class="start-button q-py-sm q-px-xl"
+            size="lg"
+            @click="gameStart"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -12,6 +45,9 @@ import { GameWorldType } from 'src/games/marble_racer/types/game'
 
 // Canvas reference
 const canvas = ref<HTMLCanvasElement>()
+
+// Show instructions dialog
+const showInstructions = ref(true)
 
 // Game engine reference (will be properly typed later)
 let gameEngine: MarbleRacerGameEngine | null = null
@@ -27,17 +63,25 @@ const animate = () => {
 
 const gameStart = () => {
   console.log('Game started')
-  if (gameEngine && canvas.value) {
+  if (gameEngine) {
     console.log('Game engine initialized')
-    gameEngine.init(canvas.value, GameWorldType.GRASS)
-    animate()
+    gameEngine.start()
+    // Listen for game-finished event
+    document.addEventListener('game-finished', (event: Event) => {
+      console.log('Game finished:', event);
+    })
+    // Hide the instructions dialog
+    showInstructions.value = false
   }
 }
 
 onMounted(() => {
   // Initialize the game engine
   gameEngine = new MarbleRacerGameEngine()
-  gameStart()
+  if (gameEngine && canvas.value) {
+    gameEngine.init(canvas.value, GameWorldType.GRASS)
+    animate()
+  }
 
   // Listen for resize events
   window.addEventListener('resize', () => {
@@ -51,70 +95,4 @@ onBeforeUnmount(() => {})
 </script>
 
 <style scoped>
-.game-page {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.game-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  background: #333;
-}
-
-.debug-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  z-index: 2;
-}
-
-.jump-button-container {
-  position: fixed !important;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-}
-
-.instructions-dialog,
-.game-over-dialog {
-  width: 90%;
-  max-width: 500px;
-  border-radius: 8px;
-}
-
-.start-button,
-.restart-button {
-  font-size: 1.2rem;
-  letter-spacing: 1px;
-  font-weight: bold;
-  border-radius: 4px;
-  transition: transform 0.2s;
-}
-
-.start-button:hover,
-.restart-button:hover {
-  transform: scale(1.05);
-}
-
-.score-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  padding: 8px 16px;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
 </style>

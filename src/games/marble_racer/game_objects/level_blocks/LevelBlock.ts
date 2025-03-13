@@ -80,7 +80,7 @@ export class LevelBlock extends GameObject{
     // Set the position
     const position = [
       block_x * GAME_CONFIG.level_block.width,
-      block_z * GAME_CONFIG.level_block.height + 1,
+      block_z * GAME_CONFIG.level_block.height,
       block_y * GAME_CONFIG.level_block.depth,
     ]
 

@@ -15,7 +15,7 @@ export class GameLevel {
   worldType: GameWorldType
   levelBlocks: Map<GameWorldBlockPosition, LevelBlock> = new Map()
   protected maxTime: number = 0
-  protected trackZLevel: number = 1
+  protected trackZLevel: number = 0
   protected goalPosition: GameWorldBlockPosition = { x: 0, y: 0, z: 0 }
   protected startPosition: GameWorldBlockPosition = { x: 0, y: 0, z: 0 }
 
@@ -82,5 +82,17 @@ export class GameLevel {
 
     // Return position of track block
     return position
+  }
+
+  getMaxTime(): number {
+    return this.maxTime
+  }
+
+  getGoalPosition(): GameWorldBlockPosition {
+    return this.goalPosition
+  }
+
+  getStartPosition(): GameWorldBlockPosition {
+    return this.startPosition
   }
 }

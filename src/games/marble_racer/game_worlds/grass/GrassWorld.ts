@@ -5,7 +5,6 @@ import { GroundObject } from 'src/games/marble_racer/game_objects/ground/GroundO
 export class GrassWorld extends GameWorld {
   constructor(canvas: HTMLCanvasElement) {
     super(canvas)
-
     // Load png image as a scene background
     const loader = new THREE.CubeTextureLoader()
 
@@ -14,7 +13,7 @@ export class GrassWorld extends GameWorld {
       .load(['2.png', '1.png', '3.png', '4.png', '5.png', '6.png'])
 
     // Set camera
-    this.camera.position.set(0, 10, 5)
+    this.camera.position.set(-50, 50, 50)
 
     // Set up ground
     this.ground = new GroundObject()
@@ -43,9 +42,13 @@ export class GrassWorld extends GameWorld {
     this.directionalLights.set(
       'directionalLight',
       directionalLight)
+
+    // Set gravity
+    this.gravity.set(0, -9.82, 0)
   }
 
   override init() {
     super.init()
   }
+
 }

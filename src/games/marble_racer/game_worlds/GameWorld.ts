@@ -1,9 +1,14 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
-import type { GameWorldBlockPosition} from 'src/games/marble_racer/types/game';
+import cannonDebugger from 'cannon-es-debugger'
 import { GameWorldType } from 'src/games/marble_racer/types/game'
 import type { GameObject } from 'src/games/marble_racer/game_objects/GameObject'
 import { GameLevel } from 'src/games/marble_racer/game_worlds/GameLevel'
+import { PlayerObject } from 'src/games/marble_racer/game_objects/player/PlayerObject'
+import { GoalObject } from 'src/games/marble_racer/game_objects/goal/GoalObject'
+import { GAME_CONFIG } from 'src/games/marble_racer/configuration/config'
+import type { GroundObject } from 'src/games/marble_racer/game_objects/ground/GroundObject'
+
 
 export class GameWorld {
   protected type: GameWorldType = GameWorldType.GRASS
@@ -14,6 +19,7 @@ export class GameWorld {
   protected directionalLights: Map<string, THREE.DirectionalLight> = new Map()
   protected ground: GameObject | null = null
   protected physicsWorld: CANNON.World = new CANNON.World()
+  private cannonDebug: { update: () => void, scene: THREE.Scene } | null = null // Reference to cannon debugger
   protected gravity: CANNON.Vec3 = new CANNON.Vec3(0, 0, 0)
   protected level: GameLevel | null = null
 
@@ -50,6 +56,16 @@ export class GameWorld {
       this.addObject(this.ground)
     }
 
+    // Attach debugger to Three.js scene and Cannon world
+    this.cannonDebug = cannonDebugger(this.scene, this.physicsWorld, {
+      color: 0xff0000, // Red wireframe for physics
+      scale: 1 // Scale of wireframe
+    }) as { update: () => void; scene: THREE.Scene };
+
+    // Add axis helper
+    const axesHelper = new THREE.AxesHelper(50)
+    //this.scene.add(axesHelper)
+
     // Set up the physics world
     this.physicsWorld.gravity.set(this.gravity.x, this.gravity.y, this.gravity.z)
 
@@ -59,9 +75,11 @@ export class GameWorld {
   update() {
     this.renderer?.render(this.scene, this.camera)
     this.physicsWorld.step(1 / 60)
+    if (this.cannonDebug)
+      this.cannonDebug.update();
   }
 
-  generateLevel(name: string) {
+  generateLevel(name: string): GameLevel {
     console.log('Generating level')
     // Instantiate level class
     this.level = new GameLevel(name, this.type)
@@ -71,6 +89,8 @@ export class GameWorld {
     this.level.levelBlocks.forEach((block) => {
       this.addObject(block)
     })
+    // Return the level
+    return this.level
   }
 
   addObject(object: GameObject): void {
@@ -78,7 +98,36 @@ export class GameWorld {
     this.physicsWorld.addBody(object.getBody())
   }
 
+  addPlayer(): PlayerObject {
+    const player = new PlayerObject()
+    const startPosition = this.level?.getStartPosition()
+    console.log('Start position: ',startPosition)
+    player.getBody().position.set(
+      startPosition?.x ? startPosition.x * GAME_CONFIG.level_block.width : 0,
+      (startPosition?.z ? startPosition.z * GAME_CONFIG.level_block.height : 0) + 3,
+      startPosition?.y ? startPosition.y * GAME_CONFIG.level_block.depth : 0
+    )
+    this.addObject(player)
+    return player
+  }
+
+  addGoal(): GoalObject {
+    const goal = new GoalObject()
+    const goalPosition = this.level?.getGoalPosition()
+    goal.getBody().position.set(
+      goalPosition?.x ? goalPosition.x * GAME_CONFIG.level_block.width : 0,
+      (goalPosition?.z ? goalPosition.z * GAME_CONFIG.level_block.height : 0) + 3,
+      goalPosition?.y ? goalPosition.y * GAME_CONFIG.level_block.depth : 0,
+    )
+    this.addObject(goal)
+    return goal
+  }
+
   // Getters
+  getLevel(): GameLevel | null {
+    return this.level
+  }
+
   getScene() {
     return this.scene
   }
@@ -95,10 +144,15 @@ export class GameWorld {
     return this.camera
   }
 
+  getGround(): GroundObject | null {
+    return this.ground
+  }
+
   updateCamera(position: [ x: number, y: number, z: number ], lookAt: [ x: number, y: number, z: number ]) {
     const targetPosition = new THREE.Vector3(...position)
-    this.camera.position.lerp(targetPosition, 0.2)
-    this.camera.lookAt(...lookAt)
+    const targetLookAt = new THREE.Vector3(...lookAt)
+    this.camera.position.lerp(targetPosition, 0.5)
+    this.camera.lookAt(targetLookAt)
   }
 
   onWindowResize() {

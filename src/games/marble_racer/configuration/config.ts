@@ -23,7 +23,7 @@ export const GAME_CONFIG = {
     // Radius of the player's marble
     radius: 1,
     // Base jump force
-    jumpForce: 10,
+    jumpForce: 5,
     // max speed
     maxSpeed: 20,
     // Rotation speed
